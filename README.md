@@ -85,7 +85,7 @@ Add it to your **.babelrc** file:
 
 ## Advanced: Scenario-based import rewriting
 
-This plugin is unique in that it:
+This plugin is (maybe) unique in that it:
 - Detects the exact scenario for every import (bare, subpath, relative, ESM/CJS, explicit file, etc.)
 - Only rewrites imports when it is safe and matches Node.js/module/package.json semantics
 - Never rewrites imports that would break due to package.json `exports` or explicit file exports
@@ -100,6 +100,8 @@ See the [test/test-cases.md](./test/test-cases.md) for a full list of scenarios,
 - Forked from [babel-plugin-import-directory](https://github.com/59naga/babel-plugin-import-directory) and [babel-plugin-wildcard](https://github.com/babel-utils/babel-plugin-wildcard)
 - Modernized, scenario-ized, and tested by [your team]
 - See original READMEs for legacy usage and options
+
+- Much of this was written by copilot/GPT4.1
 
 ---
 

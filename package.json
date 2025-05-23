@@ -1,13 +1,14 @@
 {
-  "name": "babel-plugin-import-directory",
+  "name": "babel-plugin-import-directory-plus",
   "version": "1.1.0",
   "description": "Are you sick and tired of writing an `index.js` file, just to import/export all the other files in a directory?\n\nDon't seek more :)\n\nJust use `babel-plugin-import-directory` for that!",
   "main": "lib/index.js",
   "scripts": {
     "readme": "node-readme",
-    "test": "nyc ava",
-    "test:watch": "yarn test -- --watch",
-    "report": "nyc report --reporter=html",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:coverage:report": "vitest --coverage --reporter=html",
     "build": "babel -d ./lib ./src",
     "prepublish": "babel -d ./lib ./src --minified"
   },
@@ -21,13 +22,14 @@
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0",
     "@vitest/coverage-c8": "^0.33.0",
+    "@vitest/coverage-v8": "3.1.4",
     "@vitest/ui": "^3.1.4",
     "ava": "^0.22.0",
     "node-readme": "^0.1.9",
     "nyc": "^11.2.1",
     "vitest": "^3.1.4"
   },
-  "repository": "git@github.com:Anmo/babel-plugin-import-directory.git",
+  "repository": "git@github.com:icornwell/babel-plugin-import-directory-plus.git",
   "author": "IC <ian@smallwalrus.com> + copilt from work by Anmo <btavares26@gmail.com>",
   "license": "MIT"
 }
