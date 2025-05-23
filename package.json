@@ -27,6 +27,6 @@
     "vitest": "^3.1.4"
   },
   "repository": "git@github.com:Anmo/babel-plugin-import-directory.git",
-  "author": "Anmo <btavares26@gmail.com>",
+  "author": "IC <ian@smallwalrus.com> + copilt from work by Anmo <btavares26@gmail.com>",
   "license": "MIT"
 }
