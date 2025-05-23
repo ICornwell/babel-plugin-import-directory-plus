@@ -48,7 +48,7 @@ function verboseLog(msg, state) {
 module.exports = function importDirectoryPlugin(babel) {
   const t = babel.types;
   return {
-    name: 'import-directory-fixer',
+    name: 'import-directory-plus',
     pre(state) {
       // Allow modulesDir override for testability and scenario-based testing
       this.modulesDir = (state.opts && state.opts.modulesDir) || 'node_modules';
