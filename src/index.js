@@ -1,147 +1,95 @@
-import template from '@babel/template'
-import _path from 'path'
-import _fs from 'fs'
+// babel-plugin-import-directory-plus
+// Main plugin entrypoint: orchestrates context setup, delegates to rewriter utilities, and manages plugin lifecycle.
+//
+// Purpose:
+//   - Provide a robust, testable Babel plugin for rewriting directory imports to explicit entrypoints.
+//   - Ensure compatibility with ESM/CJS, package exports, and modern Node.js resolution rules.
+//   - Centralize context, caching, and configuration for all rewriter utilities.
+//
+// Division of Labour:
+//   - This file: Orchestrates plugin lifecycle, context, and delegates to rewriters.
+//   - fileUtil.js: Low-level file and path utilities.
+//   - markersAndCacheUtils.js: Marker file logic and in-memory caching.
+//   - packageUtils.js: Package.json, entrypoint, and ESM/CJS logic (context-aware).
+//   - rewriters/: Pure rewriter functions for import and CJS named import transformations.
 
-const wildcardRegex = /\/\*$/
-const recursiveRegex = /\/\*\*$/
-const buildRequire = template(`for (let key in IMPORTED) {
-  DIR_IMPORT[key === 'default' ? IMPORTED_NAME : key] = IMPORTED[key]
-}`)
+'use strict';
+const path = require('path');
+const fs = require('fs');
+const template = require('@babel/template').default;
+const fileUtil = require('./fileUtil');
+const markersAndCacheUtils = require('./markersAndCacheUtils');
+const rewriteImport = require('./rewriters/rewriteImport');
+const rewriteCjsNamedImports = require('./rewriters/rewriteCjsNamedImports');
 
-const toCamelCase = (name) =>
-  name.replace(/([-_.]\w)/g, (_, $1) => $1[1].toUpperCase())
+const MARKER_FILE = '.transpiled-by-copilot-directory-import-fixer';
 
-const toSnakeCase = (name) =>
-  name.replace(/([-.A-Z])/g, (_, $1) => '_' + ($1 === '.' || $1 === '-' ? '' : $1.toLowerCase()))
+// Destructure core file utilities
+const { isDirectory, isFile, readJSON, safeJoin } = fileUtil;
+const { hasMarkerFile, writeMarkerFile } = markersAndCacheUtils;
+const { getConfiguredPackageUtils } = require('./packageUtils');
 
-const getFiles = (parent, exts = ['.js', '.es6', '.es', '.jsx'], files = [], recursive = false, path = []) => {
-  let r = _fs.readdirSync(parent)
+// Setup in-memory caches for directory and package.json lookups
+const getCaches = () => {
+  const dirCache = markersAndCacheUtils.createDirCache(isDirectory);
+  const pkgCache = markersAndCacheUtils.createPkgCache(readJSON);
+  return { getCachedDir: dirCache.getCachedDir, getCachedPkg: pkgCache.getCachedPkg };
+};
 
-  for (let i = 0, l = r.length; i < l; i++) {
-    let child = r[i]
-
-    const {name, ext} = _path.parse(child)
-    const file = path.concat(name)
-
-    // Check extension is of one of the aboves
-    if (exts.includes(ext)) {
-      files.push(file)
-    } else if (recursive && _fs.statSync(_path.join(parent, child)).isDirectory()) {
-      getFiles(_path.join(parent, name), exts, files, recursive, file)
-    }
+// Verbose logging utility, context-aware
+function verboseLog(msg, state) {
+  if (state.opts && (state.opts.verbose || process.env.BABEL_PLUGIN_IMPORT_DIRECTORY_VERBOSE)) {
+    // eslint-disable-next-line no-console
+    console.log('[babel-plugin-import-directory]', msg);
   }
-
-  return files
 }
 
-export default function dir (babel) {
-  const { types: t } = babel
-
+// Main Babel plugin export
+module.exports = function importDirectoryPlugin(babel) {
+  const t = babel.types;
   return {
+    name: 'import-directory-fixer',
+    pre(state) {
+      // Allow modulesDir override for testability and scenario-based testing
+      this.modulesDir = (state.opts && state.opts.modulesDir) || 'node_modules';
+    },
     visitor: {
-      ImportDeclaration (path, state) {
-        const {node} = path
-        let src = node.source.value
-
-        if (src[0] !== '.' && src[0] !== '/') { return }
-        const pathPrefix = src.split('/')[0] + '/';
-
-        const isExplicitWildcard = wildcardRegex.test(src)
-        let cleanedPath = src.replace(wildcardRegex, '')
-
-        const isRecursive = recursiveRegex.test(cleanedPath)
-        cleanedPath = cleanedPath.replace(recursiveRegex, '')
-
-        const sourcePath = this.file.opts.parserOpts.sourceFileName || this.file.opts.parserOpts.filename || ''
-        const checkPath = _path.resolve(_path.join(_path.dirname(sourcePath), cleanedPath))
-
-        try {
-          require.resolve(checkPath)
-
-          return
-        } catch (e) {}
-
-        try {
-          if (!_fs.statSync(checkPath).isDirectory()) { return }
-        } catch (e) { return }
-
-        const nameTransform = state.opts.snakeCase ? toSnakeCase : toCamelCase
-
-        const _files = getFiles(checkPath, state.opts.exts, [], isRecursive)
-        const files = _files.map((file) =>
-          [file, nameTransform(file[file.length - 1]), path.scope.generateUidIdentifier(file[file.length - 1])]
-        )
-
-        if (!files.length) { return }
-
-        const imports = files.map(([file, fileName, fileUid]) =>
-          t.importDeclaration(
-            [t.importNamespaceSpecifier(fileUid)],
-            t.stringLiteral(pathPrefix + _path.join(cleanedPath, ...file))
-          )
-        )
-
-        let dirVar = path.scope.generateUidIdentifier('dirImport')
-        path.insertBefore(t.variableDeclaration(
-          'const', [
-            t.variableDeclarator(dirVar, t.objectExpression([]))
-          ]
-        ))
-
-        for (let i = node.specifiers.length - 1; i >= 0; i--) {
-          let dec = node.specifiers[i]
-
-          if (t.isImportNamespaceSpecifier(dec) || t.isImportDefaultSpecifier(dec)) {
-            path.insertAfter(t.variableDeclaration(
-              'const', [
-                t.variableDeclarator(
-                  t.identifier(dec.local.name),
-                  dirVar
-                )
-              ]
-            ))
-          }
-
-          if (t.isImportSpecifier(dec)) {
-            path.insertAfter(t.variableDeclaration(
-              'const', [
-                t.variableDeclarator(
-                  t.identifier(dec.local.name),
-                  t.memberExpression(
-                    dirVar,
-                    t.identifier(dec.imported.name)
-                  )
-                )
-              ]
-            ))
-          }
+      // Handles all import declarations in the AST
+      ImportDeclaration(path, state) {
+        // Patch safeJoin to respect modulesDir override for test scenarios
+        const modulesDir = (state.opts && state.opts.modulesDir) || this.modulesDir || 'node_modules';
+        const origSafeJoin = safeJoin;
+        const patchedSafeJoin = (...args) => {
+          if (args[0] === 'node_modules') args[0] = modulesDir;
+          return origSafeJoin(...args);
+        };
+        // Setup context for rewriters: caches, package utils, and utilities
+        const { getCachedDir, getCachedPkg } = getCaches();
+        const packageUtils = getConfiguredPackageUtils(state, verboseLog);
+        // ---
+        // First, rewrite the import path if needed (directory → explicit entrypoint)
+        const origSource = path.node.source.value;
+        rewriteImport(path.node, state, t, {
+          getCachedDir,
+          getCachedPkg,
+          packageUtils,
+          safeJoin: patchedSafeJoin,
+          hasMarkerFile,
+          writeMarkerFile,
+          verboseLog
+        });
+        // If the import path was rewritten, or is a directory import, handle CJS named imports
+        const newSource = path.node.source.value;
+        if (newSource !== origSource || /\/index\.js$/.test(newSource)) {
+          rewriteCjsNamedImports(path, t, state, {
+            getCachedDir,
+            getCachedPkg,
+            packageUtils,
+            safeJoin: patchedSafeJoin,
+            verboseLog
+          });
         }
-
-        if (isExplicitWildcard) {
-          files.forEach(([file, fileName, fileUid]) =>
-            path.insertAfter(buildRequire({
-              IMPORTED_NAME: t.stringLiteral(fileName),
-              DIR_IMPORT: dirVar,
-              IMPORTED: fileUid
-            }))
-          )
-        } else {
-          files.forEach(([file, fileName, fileUid]) =>
-            path.insertAfter(
-              t.assignmentExpression(
-                '=',
-                t.memberExpression(
-                  dirVar,
-                  t.identifier(fileName)
-                ),
-                fileUid
-              )
-            )
-          )
-        }
-
-        path.replaceWithMultiple(imports)
-      }
-    }
-  }
-}
+      },
+    },
+  };
+};

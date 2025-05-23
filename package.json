@@ -19,9 +19,12 @@
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0",
+    "@vitest/coverage-c8": "^0.33.0",
+    "@vitest/ui": "^3.1.4",
     "ava": "^0.22.0",
     "node-readme": "^0.1.9",
-    "nyc": "^11.2.1"
+    "nyc": "^11.2.1",
+    "vitest": "^3.1.4"
   },
   "repository": "git@github.com:Anmo/babel-plugin-import-directory.git",
   "author": "Anmo <btavares26@gmail.com>",
