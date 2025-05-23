@@ -60,42 +60,14 @@ const actions = _dirImport;
 ---
 
 
-
----
-
-<!--
 The original babel-plugin-import-directory and babel-plugin-wildcard supported a non-standard pattern:
 
 ```javascript
 import actions from './actions/*';
 ```
 
-which would import all methods from each file directly into the resulting object. This is not valid JavaScript syntax and is not supported by this fork, as it is non-standard and not recognized by Babel or Node.js. Only standard directory imports (with or without `/**`) are supported in babel-plugin-import-directory-plus.
--->
+which would import all methods from each file directly into the resulting object. This is not really valid JavaScript syntax and is not supported by this fork, as it is non-standard and not recognized by Babel or Node.js. Only standard directory imports are supported in babel-plugin-import-directory-plus.
 
-And you can use both, double and single `asterisk`, like this:
-```javascript
-import actions from './actions/**/*';
-```
-
-will be compiled to:
-
-```javascript
-const _dirImport = {};
-import * as _actionA from "./actions/action.a";
-import * as _actionB from "./actions/action_b";
-import * as _actionC from "./actions/sub_dir/actionC";
-for (let key in _actionA) {
-  _dirImport[key === 'default' ? 'actionA' : key] = _actionA[key];
-}
-for (let key in _actionB) {
-  _dirImport[key === 'default' ? 'actionB' : key] = _actionB[key];
-}
-for (let key in _actionC) {
-  _dirImport[key === 'default' ? 'actionC' : key] = _actionC[key];
-}
-const actions = _dirImport;
-```
 
 ---
 
