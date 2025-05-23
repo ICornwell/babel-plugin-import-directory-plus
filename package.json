@@ -1,7 +1,7 @@
 {
   "name": "babel-plugin-import-directory-plus",
   "version": "1.1.0",
-  "description": "Are you sick and tired of writing an `index.js` file, just to import/export all the other files in a directory?\n\nDon't seek more :)\n\nJust use `babel-plugin-import-directory` for that!",
+  "description": "Are you sick and tired of writing an `index.js` file, just to import/export all the other files in a directory?\n\nDon't seek more :)\n\nJust use `babel-plugin-import-directory-plus` for that!",
   "main": "lib/index.js",
   "scripts": {
     "readme": "node-readme",
@@ -24,9 +24,7 @@
     "@vitest/coverage-c8": "^0.33.0",
     "@vitest/coverage-v8": "3.1.4",
     "@vitest/ui": "^3.1.4",
-    "ava": "^0.22.0",
     "node-readme": "^0.1.9",
-    "nyc": "^11.2.1",
     "vitest": "^3.1.4"
   },
   "repository": "git@github.com:icornwell/babel-plugin-import-directory-plus.git",
