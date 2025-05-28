@@ -38,7 +38,7 @@ describe('packageUtils', () => {
     // See: Node.js package resolution algorithm
     const dir = __dirname;
     const pkgPath = utils.getPackageJson(dir);
-    expect(pkgPath).toMatch(/package\.json$/);
+    expect(pkgPath.license).toMatch(/MIT/);
   });
 
   it('should get entrypoint from package.json and subpath', () => {

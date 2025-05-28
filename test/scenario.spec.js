@@ -24,6 +24,7 @@ describe('babel-plugin-import-directory-plus scenarios', () => {
     });
   }
   for (const folder of scenarioFolders) {
+    let failed = false
     const dir = path.join(scenariosDir, folder);
     const modulesDir = path.join(dir, 'node_modules')
     const inputPath = path.join(dir, 'input.js');
@@ -41,7 +42,13 @@ describe('babel-plugin-import-directory-plus scenarios', () => {
       }).code.replace(/\r\n/g, '\n');
       // Normalize quotes for comparison
       const normalizeQuotes = str => str.replace(/"/g, "'");
+      try {
       expect(normalizeQuotes(result.trim())).toBe(normalizeQuotes(expected.trim()));
+      } catch (ex) {
+        console.log(ex)
+        failed = true
+      }
     });
+    if (failed) break;
   }
 });

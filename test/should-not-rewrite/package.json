@@ -1,7 +1,0 @@
-{
-  "name": "@emotion/react",
-  "exports": {
-    ".": "./dist/emotion-react.cjs.js",
-    "./jsx-runtime": "./jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js"
-  }
-}

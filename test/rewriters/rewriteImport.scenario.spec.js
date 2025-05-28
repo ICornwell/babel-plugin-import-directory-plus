@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest';
 const path = require('path');
-const fs = require('fs');
+
 const rewriteImport = require('../../src/rewriters/rewriteImport');
 const { getConfiguredPackageUtils } = require('../../src/packageUtils');
 const fileUtil = require('../../src/fileUtil');
 const markersAndCacheUtils = require('../../src/markersAndCacheUtils');
 
-// Helper to create a minimal Babel state/context for a test scenario
 function makeState(filename, opts = {}) {
   return {
     file: { opts: { filename } },
@@ -14,7 +13,6 @@ function makeState(filename, opts = {}) {
   };
 }
 
-// Helper to create the context for rewriteImport
 function makeContext(modulesDir) {
   const { getCachedDir } = markersAndCacheUtils.createDirCache(fileUtil.isDirectory);
   const { getCachedPkg } = markersAndCacheUtils.createPkgCache(fileUtil.readJSON);
@@ -41,7 +39,6 @@ function makeContext(modulesDir) {
 
 // Table-driven scenarios: [scenarioFolder, importSource, expectedScenario]
 const scenarios = [
-  // [scenarioFolder, importSource, expectedScenario]
   ['bare-import-exports', '@mui/material/Button', 'bare-import-exports-no-rewrite'],
   ['bare-import-main', 'lodash/utils', 'bare-import-subpath'],
   ['bare-import-noexports', 'npm-cli/utils', 'bare-import-subpath'],
@@ -53,30 +50,20 @@ const scenarios = [
   ['should-not-rewrite', '@emotion/react/jsx-runtime', 'bare-import-exports-no-rewrite'],
 ];
 
-// This test only checks scenario detection, not the actual rewrite
-
-describe('rewriteImport scenario detection', () => {
+describe('rewriteImport-scenario-detection-real-fs', () => {
   scenarios.forEach(([scenarioFolder, importSource, expectedScenario]) => {
     it(`should detect scenario '${expectedScenario}' for import '${importSource}' in '${scenarioFolder}'`, () => {
-      // Arrange
       const modulesDir = path.resolve(__dirname, '..', scenarioFolder);
+      // Use input.js as the test file for scenario detection
       const filename = path.join(modulesDir, 'input.js');
       const state = makeState(filename, { modulesDir });
       const context = makeContext(modulesDir);
-      // Act
-      // We call the internal detectImportScenario for direct scenario check
-      const { scenario } = require('../../src/rewriters/rewriteImport').__test__detectImportScenario({
+      const { scenario } = rewriteImport.detectImportScenario({
         src: importSource,
         state,
         ...context,
       });
-      // Assert
       expect(scenario).toBe(expectedScenario);
     });
   });
 });
-
-// Expose detectImportScenario for testing
-if (!rewriteImport.__test__detectImportScenario) {
-  rewriteImport.__test__detectImportScenario = require('../../src/rewriters/rewriteImport').detectImportScenario || require('../../src/rewriters/rewriteImport').__test__detectImportScenario;
-}

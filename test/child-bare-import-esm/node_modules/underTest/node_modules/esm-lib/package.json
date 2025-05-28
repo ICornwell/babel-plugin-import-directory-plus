@@ -1,0 +1,7 @@
+{
+  "name": "esm-lib",
+  "type": "module",
+  "exports": {
+    "./utils": "./utils/index.js"
+  }
+}
