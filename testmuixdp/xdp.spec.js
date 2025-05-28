@@ -4,10 +4,10 @@ import path from 'path';
 import { transformSync } from '@babel/core';
 import plugin from '../src/index.js';
 
-// use to restrict to specific tests for debugging, otherwise use /.*/
+// copy scenario files to node_modules/underTest with peer / child depends
+// and use this to debug the plugin
 
-
-describe('babel-plugin-import-directory-plus-single-example-debug-test', () => {
+describe.skip('babel-plugin-import-directory-plus-single-example-debug-test', () => {
 
     const folder = './node_modules/underTest';
     const dir = path.join(__dirname, folder);
@@ -16,7 +16,7 @@ describe('babel-plugin-import-directory-plus-single-example-debug-test', () => {
       
     const input = fs.readFileSync(inputPath, 'utf8').replace(/\r\n/g, '\n');
     
-    it(`${folder} scenario`, () => {
+    it.skip(`${folder} scenario`, () => {
       const result = transformSync(input, {
         babelrc: false,
         configFile: false,
