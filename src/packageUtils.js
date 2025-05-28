@@ -24,7 +24,7 @@ function getConfiguredPackageUtils(state, verboseLog) {
    * Purpose: Abstracts package.json location logic for use in entrypoint and module resolution.
    */
   function getPackageJson(dir) {
-    return fileUtil.getPackageJson(dir);
+    return fileUtil.getPackageJsonFilePath(dir);
   }
 
   /**
@@ -65,6 +65,12 @@ function getConfiguredPackageUtils(state, verboseLog) {
   function isRelativeImport(src) {
     // Only treat as relative import if src is a non-empty string and starts with . or /
     return typeof src === 'string' && src.length > 0 && (src.startsWith('.') || src.startsWith('/'));
+  }
+
+  function isPeerImport(src, pkgJson) {
+    // Only treat as peer import if src is in peer list
+    return typeof src === 'string' && Object.keys(pkgJson.json?.peerDependencies ?? {})
+      .find(dep => dep === src || src.startsWith(dep + '/')) !== undefined;
   }
 
   /**
@@ -118,13 +124,13 @@ function getConfiguredPackageUtils(state, verboseLog) {
    * Heuristically determines if a file is a CommonJS module, supporting safe interop.
    * Purpose: Enables correct transformation of named imports from CJS modules to default import + destructure.
    */
-  function isCjsModule(entryPath, getPackageJsonFn, getCachedPkg) {
+  function isCjsModule(entryPath, targetPackage, relative) {
+    const { pkgJson } = targetPackage;
     // Heuristic: .cjs or .js with no "type": "module" in package.json
     if (entryPath.endsWith('.cjs')) return true;
+    if (relative) return false; // Relative imports are not CJS unless explicitly marked with .cjs extension
+    if (entryPath.endsWith('.mjs')) return false;
     if (entryPath.endsWith('.js')) {
-      const pkgPath = getPackageJsonFn(path.dirname(entryPath));
-      if (!pkgPath) return true;
-      const pkgJson = getCachedPkg(pkgPath);
       // Treat as CJS if no 'type: module' (for test scenarios, always treat as CJS if no type)
       if (!pkgJson || pkgJson.type !== 'module') return true;
       return false;
@@ -136,6 +142,7 @@ function getConfiguredPackageUtils(state, verboseLog) {
     getPackageJson,
     getEntrypoint,
     isBareImport,
+    isPeerImport,
     isRelativeImport,
     resolveEntrypoint,
     isAllowedByExports,

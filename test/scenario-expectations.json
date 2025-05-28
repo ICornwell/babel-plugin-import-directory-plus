@@ -1,0 +1,178 @@
+{
+    "peer-bare-import-cjs": [
+        {
+            "importSource": "cjs-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "lodash",
+            "expectedScenario": "bare-import-main"
+        }
+    ],
+    "peer-bare-import-esm": [
+        {
+            "importSource": "esm-lib/utils",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        },
+        {
+            "importSource": "@mui/x-date-pickers/utils",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "peer-bare-import-noexports": [
+        {
+            "importSource": "my-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "npm-cli/utils",
+            "expectedScenario": "bare-import-subpath"
+        }
+    ],
+    "peer-bare-import-main": [
+        {
+            "importSource": "main-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "lodash/utils",
+            "expectedScenario": "bare-import-subpath"
+        }
+    ],
+    "peer-bare-import-subpath": [
+        {
+            "importSource": "subpath-lib/subdir",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "@mui/material",
+            "expectedScenario": "bare-import-main"
+        }
+    ],
+    "peer-bare-import-exports": [
+        {
+            "importSource": "@emotion/react/jsx-runtime",
+            "expectedScenario": "bare-import-not-a-dir"
+        },
+        {
+            "importSource": "@mui/material/Button",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "peer-bare-import-exports-no-rewrite": [
+        {
+            "importSource": "date-fns/parse",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "peer-bare-import-exports-not-allowed": [
+        {
+            "importSource": "mui-lib/utils",
+            "expectedScenario": "bare-import-not-a-dir"
+        }
+    ],
+    "peer-should-not-rewrite": [
+        {
+            "importSource": "@emotion/react/jsx-runtime",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "child-bare-import-cjs": [
+        {
+            "importSource": "cjs-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "lodash",
+            "expectedScenario": "bare-import-main"
+        }
+    ],
+    "child-bare-import-esm": [
+        {
+            "importSource": "esm-lib/utils",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        },
+        {
+            "importSource": "@mui/x-date-pickers/utils",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "child-bare-import-noexports": [
+        {
+            "importSource": "my-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "npm-cli/utils",
+            "expectedScenario": "bare-import-subpath"
+        }
+    ],
+    "child-bare-import-main": [
+        {
+            "importSource": "main-lib/utils",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "lodash/utils",
+            "expectedScenario": "bare-import-subpath"
+        }
+    ],
+    "child-bare-import-subpath": [
+        {
+            "importSource": "subpath-lib/subdir",
+            "expectedScenario": "bare-import-subpath"
+        },
+        {
+            "importSource": "@mui/material",
+            "expectedScenario": "bare-import-main"
+        }
+    ],
+    "child-bare-import-exports": [
+        {
+            "importSource": "@emotion/react/jsx-runtime",
+            "expectedScenario": "bare-import-not-a-dir"
+        },
+        {
+            "importSource": "@mui/material/Button",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "child-bare-import-exports-no-rewrite": [
+        {
+            "importSource": "date-fns/parse",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "child-bare-import-exports-not-allowed": [
+        {
+            "importSource": "mui-lib/utils",
+            "expectedScenario": "bare-import-not-a-dir"
+        }
+    ],
+    "child-should-not-rewrite": [
+        {
+            "importSource": "@emotion/react/jsx-runtime",
+            "expectedScenario": "bare-import-exports-no-rewrite"
+        }
+    ],
+    "relative-import": [
+        {
+            "importSource": "./utils",
+            "expectedScenario": "relative-import"
+        },
+        {
+            "importSource": "./components",
+            "expectedScenario": "relative-import"
+        }
+    ],
+    "relative-import-noexports": [
+        {
+            "importSource": "./utils",
+            "expectedScenario": "relative-import"
+        },
+        {
+            "importSource": "./components",
+            "expectedScenario": "relative-import"
+        }
+    ]
+}

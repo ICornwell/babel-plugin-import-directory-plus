@@ -26,7 +26,7 @@ const MARKER_FILE = '.transpiled-by-copilot-directory-import-fixer';
 
 // Destructure core file utilities
 const { isDirectory, isFile, readJSON, safeJoin } = fileUtil;
-const { hasMarkerFile, writeMarkerFile } = markersAndCacheUtils;
+const { hasMarkerFile, writeMarkerFile, getMarkerFilePathForFile, hasMarkerFileForFile, writeMarkerFileForFile } = markersAndCacheUtils;
 const { getConfiguredPackageUtils } = require('./packageUtils');
 
 // Setup in-memory caches for directory and package.json lookups
@@ -58,6 +58,7 @@ module.exports = function importDirectoryPlugin(babel) {
       ImportDeclaration(path, state) {
         // Patch safeJoin to respect modulesDir override for test scenarios
         const modulesDir = (state.opts && state.opts.modulesDir) || this.modulesDir || 'node_modules';
+        verboseLog(`Processing import: ${path.node.source.value}, modified modulesDir: ${modulesDir}`, state);
         const origSafeJoin = safeJoin;
         const patchedSafeJoin = (...args) => {
           if (args[0] === 'node_modules') args[0] = modulesDir;
@@ -69,21 +70,23 @@ module.exports = function importDirectoryPlugin(babel) {
         // ---
         // First, rewrite the import path if needed (directory → explicit entrypoint)
         const origSource = path.node.source.value;
-        rewriteImport(path.node, state, t, {
+        const { targetPackage } = rewriteImport(path.node, state, t, {
           getCachedDir,
           getCachedPkg,
           packageUtils,
           safeJoin: patchedSafeJoin,
           hasMarkerFile,
           writeMarkerFile,
-          verboseLog
+          verboseLog,
+          // Pass new file-based marker helpers
+          hasMarkerFileForFile,
+          writeMarkerFileForFile
         });
         // If the import path was rewritten, or is a directory import, handle CJS named imports
         const newSource = path.node.source.value;
         if (newSource !== origSource || /\/index\.js$/.test(newSource)) {
           rewriteCjsNamedImports(path, t, state, {
-            getCachedDir,
-            getCachedPkg,
+            targetPackage,
             packageUtils,
             safeJoin: patchedSafeJoin,
             verboseLog

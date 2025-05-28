@@ -1,4 +1,9 @@
 lib
-node_modules
 coverage
+
+# Ignore root node_modules only
+/node_modules/
+
+# Do NOT ignore node_modules in test scenarios
+!/test/**/node_modules/
 

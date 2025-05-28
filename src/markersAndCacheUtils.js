@@ -12,6 +12,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { isFile } = require('./fileUtil')
 
 const MARKER_FILE = '.transpiled-by-copilot-directory-import-fixer';
 
@@ -26,7 +27,36 @@ function writeMarkerFile(dir, state) {
   if (state && state.opts && (state.opts.force || state.opts.noMarks)) return;
   try {
     fs.writeFileSync(path.join(dir, MARKER_FILE), '');
-  } catch {}
+  } catch { }
+}
+
+function cleanFileName(fileName) {
+  // Clean up the file name to ensure it is a valid path
+  return fileName.replace(/[^@a-zA-Z0-9_\-.]/g, '_');
+}
+
+function getMarkerFilePathForFile(targetFile, src) {
+  // Place marker in the same directory as the rewritten file, named after the file
+  const dir = path.dirname(targetFile);
+  const base = cleanFileName(`${path.basename(targetFile)}-${src}`);
+  return path.join(dir, `.transpile-imports-rewritten.${base}`);
+}
+
+function hasMarkerFileForFile(state, src) {
+  if (state && state.opts && state.opts.force) return false;
+  if (!state.file || !state.file.opts || !state.file.opts.filename) return false;
+  return isFile(getMarkerFilePathForFile(state.file.opts.filename, src));
+}
+
+function writeMarkerFileForFile(state, src) {
+  if (state && state.opts && (state.opts.noMarks)) return;
+  if (!state.file || !state.file.opts || !state.file.opts.filename) return;
+  try {
+    const markerFilePath = getMarkerFilePathForFile(state.file.opts.filename, src);
+    fs.writeFileSync(markerFilePath, '');
+  } catch (err) { 
+    console.log(`Error writing marker file: ${err.message}`);
+  }
 }
 
 function createDirCache(isDirectory) {
@@ -65,6 +95,10 @@ const markersAndCacheUtils = {
   writeMarkerFile,
   createDirCache,
   createPkgCache,
+  // New file-based marker helpers
+  getMarkerFilePathForFile,
+  hasMarkerFileForFile,
+  writeMarkerFileForFile,
 };
 
 module.exports = markersAndCacheUtils;

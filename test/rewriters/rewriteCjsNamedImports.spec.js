@@ -12,7 +12,7 @@ describe('rewriteCjsNamedImports', () => {
     const state = { file: { opts: { filename: '/fake.js' } } };
     const t = {};
     // Should not throw, even if it does nothing
-    expect(() => rewriteCjsNamedImports(node, state, t, {})).not.toThrow();
+    expect(() => rewriteCjsNamedImports(node, state, t, { targetPackage:{pkgName:'x', pkgJson:{}}})).not.toThrow();
   });
 
   // Add more tests for CJS named import rewriting as logic is extended

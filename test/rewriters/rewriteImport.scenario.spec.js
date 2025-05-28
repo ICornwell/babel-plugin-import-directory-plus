@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 const path = require('path');
+const fs = require('fs');
 
 const rewriteImport = require('../../src/rewriters/rewriteImport');
 const { getConfiguredPackageUtils } = require('../../src/packageUtils');
 const fileUtil = require('../../src/fileUtil');
 const markersAndCacheUtils = require('../../src/markersAndCacheUtils');
+const scenarioExpectations = require('../scenario-expectations.json');
 
 function makeState(filename, opts = {}) {
   return {
@@ -37,33 +39,26 @@ function makeContext(modulesDir) {
   };
 }
 
-// Table-driven scenarios: [scenarioFolder, importSource, expectedScenario]
-const scenarios = [
-  ['bare-import-exports', '@mui/material/Button', 'bare-import-exports-no-rewrite'],
-  ['bare-import-main', 'lodash/utils', 'bare-import-subpath'],
-  ['bare-import-noexports', 'npm-cli/utils', 'bare-import-subpath'],
-  ['bare-import-subpath', '@mui/material/Button', 'bare-import-exports-no-rewrite'],
-  ['bare-import-cjs', 'lodash/utils', 'bare-import-subpath'],
-  ['bare-import-esm', '@mui/x-date-pickers/utils', 'bare-import-exports-no-rewrite'],
-  ['relative-import', './src/components', 'relative-import-not-a-dir'],
-  ['relative-import-noexports', './src/components', 'relative-import-not-a-dir'],
-  ['should-not-rewrite', '@emotion/react/jsx-runtime', 'bare-import-exports-no-rewrite'],
-];
-
 describe('rewriteImport-scenario-detection-real-fs', () => {
-  scenarios.forEach(([scenarioFolder, importSource, expectedScenario]) => {
-    it(`should detect scenario '${expectedScenario}' for import '${importSource}' in '${scenarioFolder}'`, () => {
-      const modulesDir = path.resolve(__dirname, '..', scenarioFolder);
-      // Use input.js as the test file for scenario detection
-      const filename = path.join(modulesDir, 'input.js');
-      const state = makeState(filename, { modulesDir });
-      const context = makeContext(modulesDir);
-      const { scenario } = rewriteImport.detectImportScenario({
-        src: importSource,
-        state,
-        ...context,
+  Object.entries(scenarioExpectations).forEach(([scenarioFolder, imports]) => {
+    imports.forEach(({ importSource, expectedScenario }) => {
+      it(`should detect scenario '${expectedScenario}' for import '${importSource}' in '${scenarioFolder}'`, () => {
+        // Try both possible underTest/undertest casing
+        let modulesDir = path.resolve(__dirname, '..', scenarioFolder, 'node_modules', 'underTest');
+        let filename = path.join(modulesDir, 'input.js');
+        if (!fs.existsSync(filename)) {
+          modulesDir = path.resolve(__dirname, '..', scenarioFolder, 'node_modules', 'undertest');
+          filename = path.join(modulesDir, 'input.js');
+        }
+        const state = makeState(filename, { modulesDir });
+        const context = makeContext(modulesDir);
+        const { scenario } = rewriteImport.detectImportScenario({
+          src: importSource,
+          state,
+          ...context,
+        });
+        expect(scenario).toBe(expectedScenario);
       });
-      expect(scenario).toBe(expectedScenario);
     });
   });
 });

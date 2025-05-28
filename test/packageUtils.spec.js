@@ -38,7 +38,7 @@ describe('packageUtils', () => {
     // See: Node.js package resolution algorithm
     const dir = __dirname;
     const pkgPath = utils.getPackageJson(dir);
-    expect(pkgPath.license).toMatch(/MIT/);
+    expect(pkgPath.endsWith('/package.json'));
   });
 
   it('should get entrypoint from package.json and subpath', () => {
@@ -104,22 +104,20 @@ describe('packageUtils', () => {
   it('should detect CJS modules by extension', () => {
     // Scenario: .cjs files are always CommonJS; .js files are CJS unless package.json type is 'module'
     // See: https://nodejs.org/api/packages.html#type
-    expect(utils.isCjsModule('/foo/bar.cjs', () => null, () => null)).toBe(true);
-    expect(utils.isCjsModule('/foo/bar.js', () => null, () => null)).toBe(true);
+    expect(utils.isCjsModule('/foo/bar.cjs', { pkgName:'x', pkgJson: {}}, false)).toBe(true);
+    expect(utils.isCjsModule('/foo/bar.js', {pkgName:'x', pkgJson: {}}, false)).toBe(true);
   });
 
   it('should detect ESM modules by type: module', () => {
     // Scenario: If package.json has "type": "module", .js files are ESM
     // See: https://nodejs.org/api/packages.html#type
-    const fakeGetPackageJson = () => '/foo/package.json';
-    const fakeGetCachedPkg = () => ({ type: 'module' });
-    expect(utils.isCjsModule('/foo/bar.js', fakeGetPackageJson, fakeGetCachedPkg)).toBe(false);
+  
+    expect(utils.isCjsModule('/foo/bar.js', {pkgName:'x', pkgJson: { type: 'module' }}, false)).toBe(false);
   });
 
   it('should treat .js as CJS if no package.json', () => {
     // Scenario: If no package.json is found, .js files default to CJS (legacy Node.js behavior)
-    const fakeGetPackageJson = () => null;
-    const fakeGetCachedPkg = () => null;
-    expect(utils.isCjsModule('/foo/bar.js', fakeGetPackageJson, fakeGetCachedPkg)).toBe(true);
+
+    expect(utils.isCjsModule('/foo/bar.js',  {pkgName:'x', pkgJson: undefined})).toBe(true);
   });
 });

@@ -18,12 +18,12 @@ const path = require('path');
  * @param {object} context - Context object containing cache, utility, and logging functions.
  */
 function rewriteCjsNamedImports(pathObj, t, state, {
-  getCachedDir,
-  getCachedPkg,
+  targetPackage,
   packageUtils,
   safeJoin,
   verboseLog
 }) {
+   const { pkgName, pkgJson, pkgDir, isPeer } = targetPackage;
   // Defensive: check for .node property
   if (!pathObj || !pathObj.node || !pathObj.node.source) return;
   const src = pathObj.node.source.value;
@@ -32,13 +32,15 @@ function rewriteCjsNamedImports(pathObj, t, state, {
   const namedSpecifiers = node.specifiers.filter(s => t.isImportSpecifier(s));
   if (namedSpecifiers.length === 0) return;
   let entryPath = '';
+  let relative = false;
   if (packageUtils.isRelativeImport(src)) {
-    entryPath = getEntryPathForRelativeImport(src, state, safeJoin);
+    entryPath = getEntryPathForRelativeImport(src, targetPackage, state, safeJoin);
+    relative = true;
   } else {
-    entryPath = getEntryPathForBareImport(src, safeJoin);
+    entryPath = getEntryPathForBareImport(src, targetPackage, safeJoin);
   }
   if (!entryPath || typeof entryPath !== 'string') return;
-  if (!packageUtils.isCjsModule(entryPath, packageUtils.getPackageJson, getCachedPkg)) return;
+  if (!packageUtils.isCjsModule(entryPath, targetPackage, relative)) return;
   const defaultId = pathObj.scope && pathObj.scope.generateUidIdentifier ? pathObj.scope.generateUidIdentifier('cjsDefault') : { name: 'cjsDefault' };
   if (typeof pathObj.insertBefore !== 'function') return;
   pathObj.insertBefore(
@@ -72,7 +74,8 @@ function rewriteCjsNamedImports(pathObj, t, state, {
  * @param {function} safeJoin - A utility function for safe path joining.
  * @returns {string|null} - The resolved entry path or null if it cannot be determined.
  */
-function getEntryPathForRelativeImport(src, state, safeJoin) {
+function getEntryPathForRelativeImport(src, targetPackage, state, safeJoin) {
+  const { pkgName, pkgJson, pkgDir, isPeer } = targetPackage;
   const fileName = state.file.opts.filename || state.file.opts.sourceFileName || '';
   if (typeof path.dirname !== 'function' || typeof fileName !== 'string') return null;
   const fileDir = path.dirname(fileName);
@@ -93,11 +96,12 @@ function getEntryPathForRelativeImport(src, state, safeJoin) {
  * @param {function} safeJoin - A utility function for safe path joining.
  * @returns {string|null} - The resolved entry path or null if it cannot be determined.
  */
-function getEntryPathForBareImport(src, safeJoin) {
+function getEntryPathForBareImport(src, targetPackage, safeJoin) {
+  const { pkgName, pkgJson, pkgDir, isPeer } = targetPackage;
   const parts = src.split('/');
-  let pkgName = parts[0];
+  
   if (pkgName.startsWith('@')) pkgName += '/' + parts[1];
-  const pkgDir = safeJoin('node_modules', pkgName);
+  
   if (typeof pkgDir !== 'string') return null;
   const rest = parts.slice(pkgName.startsWith('@') ? 2 : 1);
   if (!Array.isArray(rest) || !rest.every(p => typeof p === 'string')) return null;

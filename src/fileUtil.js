@@ -26,12 +26,43 @@ function readJSON(p) {
   }
 }
 
-function getPackageJson(dir) {
+function getPackageJsonFilePath(dir) {
   let cur = dir;
   while (cur !== path.dirname(cur)) {
     const pkg = path.join(cur, 'package.json');
     if (typeof pkg !== 'string') return null;
     if (isFile(pkg)) return pkg;
+    cur = path.dirname(cur);
+  }
+  return null;
+}
+
+function getDependsPackageJson(dir, stopDir) {
+  let cur = dir;
+  while (cur !== path.dirname(cur) && cur !== stopDir) {
+    if (cur === '/') return null; // Reached root directory
+    const pkg = path.join(cur, 'package.json');
+    if (typeof pkg !== 'string') return null;
+    if (isFile(pkg)) {
+      const json = readJSON(pkg);
+      if (json && (json.dependencies || json.peerDependencies)) {
+        return {json, pkgPath: pkg, pkgDir: cur};
+      }
+    }
+    cur = path.dirname(cur);
+  }
+  return null;
+}
+
+function getNodeModulesDir(dir, stopDir) {
+  let cur = dir;
+  while (cur !== path.dirname(cur) && cur !== stopDir) {
+    if (cur === '/') return null; // Reached root directory
+   
+  
+    if (isDirectory(cur) && cur.endsWith('/node_modules')) {
+      return cur;
+    }
     cur = path.dirname(cur);
   }
   return null;
@@ -46,9 +77,11 @@ function safeJoin(...args) {
 
 const fileUtil = {
   isDirectory,
+  getNodeModulesDir,
   isFile,
   readJSON,
-  getPackageJson,
+  getPackageJsonFilePath,
+  getDependsPackageJson,
   safeJoin,
 };
 

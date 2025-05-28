@@ -1,0 +1,42 @@
+# Test Harness & Scenario-Driven Testing Vision
+
+## User Rants & Requirements
+- Frustration with test runners (Vitest/Jest) that parallelize test discovery/setup, making deterministic, sequential setup/teardown for real-fs/integration tests difficult or impossible.
+- Need for a test harness that:
+  - Allows setup/teardown to be sequenced and deterministic by default.
+  - Supports dynamic, on-demand test discovery and module loading.
+  - Focuses on the Problem Under Test (PUT), not just the System Under Test (SUT).
+  - Has strong tooling for management, versioning, and assembly of test-data fragments into scenario sets.
+  - Handles complex initial state management for applications where initial state is huge and changes everything.
+  - Codifies data lifecycle state changes, enabling expressive, business-focused scenario definitions (e.g., “classic bank account in overdraft, 3 month history, etc.”).
+  - Makes test data modular, composable, and versioned, not 600-line brittle blobs.
+  - Enables readable, maintainable, and robust scenario-driven tests.
+  - Is cross-platform and language-agnostic (JS, TS, .NET, Go, Rust, Scala, etc.).
+  - Integrates deeply with Copilot/AI for test authoring, curation, and debugging.
+
+## Babel Plugin Import Directory Plus Context
+- Real-fs scenario-driven test harness for Babel plugin that rewrites directory imports.
+- Harness copies scenario folders, sets up working dirs, and runs all scenarios in a single test to avoid race conditions with beforeAll/describe/it.
+- User wants all failures reported, not just the first.
+- User is considering building a new harness/tooling to address these pain points for all languages and stacks.
+
+## Vision for Future Test Tooling
+- Deterministic, opt-in parallelism.
+- Dynamic, on-demand test discovery.
+- Real-world scenario/data management.
+- Deep Copilot/AI integration for test authoring and debugging.
+- Pluggable runners for multiple languages.
+- Sane, extensible model for package/module resolution.
+- Test-data fragments as first-class citizens: modular, versioned, composable, and reusable.
+- Scenario assembly: declarative, human-readable scenario definitions.
+- Initial state management and data lifecycle codification.
+- Versioning and diffing of test data.
+- Business-driven, readable, and maintainable tests.
+
+## User’s Workspace
+- Multi-repo, multi-language, real-world workspace with many Node.js, Python, and other projects.
+- Babel plugin project uses scenario-driven, real-fs-based test harness.
+
+---
+
+*This context.mb file summarizes the user’s requirements, frustrations, and vision for future test tooling. Use it as a reference for future sessions and Copilot pair programming.*
