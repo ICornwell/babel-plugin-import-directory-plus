@@ -71,12 +71,12 @@ function detectImportScenario({ src, state, packageUtils, safeJoin, getCachedPkg
     const importDir = safeJoin(pkgDir, ...parts.slice(subpathStartIdx));
     // --- DEBUG: Log what exports and subpathForExports are ---
     // eslint-disable-next-line no-console
-    if (pkgJson.exports) {
+    //if (pkgJson.exports) {
       // SCENARIO: The package.json has an 'exports' field. This means the package uses modern subpath exports (Node.js ESM semantics).
       // We must check if the import matches an explicit subpath export (e.g., './Button' in @mui/material).
       // This branch is relevant because Node.js will only allow access to explicitly exported subpaths.
-      verboseLog(`[detectImportScenario] pkgJson.exports:${JSON.stringify(pkgJson.exports)} subpathForExports:${subpathForExports}`, state);
-    }
+      // verboseLog(`[detectImportScenario] pkgJson.exports:${JSON.stringify(pkgJson.exports)} subpathForExports:${subpathForExports}`, state);
+    //}
     if (pkgJson.exports) {
       // --- SCENARIO: Package has 'exports' field ---
       // This branch handles packages using modern exports maps (e.g., @emotion/react, @mui/material)
@@ -271,6 +271,8 @@ function rewriteImport(node, state, t, {
     // eslint-disable-next-line no-console
     console.log(`[DEBUG] Detected scenario for '${src}':`, scenario, meta);
   }
+  let resolvedPath;
+  let importDir = null;
   switch (scenario) {
     case 'bare-import-should-add-esm':
       // Insert /esm/ after the package name
@@ -308,6 +310,7 @@ function rewriteImport(node, state, t, {
     case 'unknown':
     case 'bare-import-exports-no-rewrite': // New scenario for explicit subpath exports that should not be rewritten
     default:
+      verboseLog(`[NO-REWRITE] Not rewriting import in file: ${filename} from '${src}''`, state);
       return { targetPackage: { pkgName: meta.pkgName, pkgJson: meta.pkgJson, pkgDir:meta.pkgDir, isPeer: meta.isPeer } };
   }
   if (!resolvedPath) return;

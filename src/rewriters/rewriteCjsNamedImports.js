@@ -43,6 +43,9 @@ function rewriteCjsNamedImports(pathObj, t, state, {
   if (!packageUtils.isCjsModule(entryPath, targetPackage, relative)) return;
   const defaultId = pathObj.scope && pathObj.scope.generateUidIdentifier ? pathObj.scope.generateUidIdentifier('cjsDefault') : { name: 'cjsDefault' };
   if (typeof pathObj.insertBefore !== 'function') return;
+
+  verboseLog(`Rewriting CJS named imports for ${src} in ${state.file.opts.filename}`, state)
+
   pathObj.insertBefore(
     t.importDeclaration([
       t.importDefaultSpecifier(defaultId)
@@ -97,7 +100,8 @@ function getEntryPathForRelativeImport(src, targetPackage, state, safeJoin) {
  * @returns {string|null} - The resolved entry path or null if it cannot be determined.
  */
 function getEntryPathForBareImport(src, targetPackage, safeJoin) {
-  const { pkgName, pkgJson, pkgDir, isPeer } = targetPackage;
+  const {  pkgDir } = targetPackage;
+  let { pkgName } = targetPackage;
   const parts = src.split('/');
   
   if (pkgName.startsWith('@')) pkgName += '/' + parts[1];
