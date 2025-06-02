@@ -1,5 +1,7 @@
 # babel-plugin-import-directory-plus
 
+# Currently Buggy and Broken, mid big refactor #
+
 > **A robust, scenario-aware fork of [babel-plugin-wildcard](https://github.com/babel-utils/babel-plugin-wildcard) and [babel-plugin-import-directory](https://github.com/59naga/babel-plugin-import-directory), with full support for modern Node.js/package.json exports, real-world package structures, and edge-case correctness.**
 
 ---
